@@ -3,9 +3,11 @@ var tasks = {};
 var createTask = function(taskText, taskDate, taskList) {
   // create elements that make up a task item
   var taskLi = $("<li>").addClass("list-group-item");
+
   var taskSpan = $("<span>")
     .addClass("badge badge-primary badge-pill")
     .text(taskDate);
+
   var taskP = $("<p>")
     .addClass("m-1")
     .text(taskText);
@@ -33,7 +35,6 @@ var loadTasks = function() {
 
   // loop over object properties
   $.each(tasks, function(list, arr) {
-    console.log(list, arr);
     // then loop over sub-array
     arr.forEach(function(task) {
       createTask(task.text, task.date, list);
@@ -45,9 +46,52 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+// Turns the text into a textarea - allowing edits
+$(".list-group").on("click", "p", function( ) {
+  var text =$(this)
+  // captures the innerHTML
+  .text()
+  // removes any extra white space
+  .trim();
+  var textInput =$("<textarea>")
+  .addClass("form-control")
+  .val(text);
+  $(this).replaceWith(textInput);
+  textInput.trigger("focus");
+  console.log(text);
+})
 
+// function after editing
+$(".list-group").on("blur", "textarea", function(){
+  // get the text area's current valut/text
+  var text = $(this)
+  .val()
+  .trim();
 
+  // get the parents ul's id attribute
+  var status= $(this)
+  .closest(".list-group")
+  .attr("id")
+  .replace("list-", "");
 
+  // get the task's position in the list of other li elements
+  var index = $(this)
+  .closest(".list-group-item")
+  .index();
+  console.log(text, status, index);
+  tasks[status][index].text = text;
+  console.log(taskP);
+  saveTasks();
+
+  // recreate p element
+  var taskP = $("<p>")
+  .addClass("m-1")
+  .text(text);
+
+  // replace textarea wth p element
+  $(this).replaceWith(taskP);
+
+})
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function() {
   // clear values
@@ -77,7 +121,7 @@ $("#task-form-modal .btn-primary").click(function() {
       text: taskText,
       date: taskDate
     });
-
+    // saves to local storage
     saveTasks();
   }
 });
